@@ -4,10 +4,12 @@ using UnityEngine;
 public class CapybaraScript : MonoBehaviour {
 
     public float moveSpeed = 8f;
+    public float sprintMovementMult = 3f;
     public float jumpHeight = 8f;
     public float fallSpeed = 1.5f;
     public float lowJumpMultiplier = 2.0f;
     private bool lookRight = true;
+    private bool sprintActivated = false;
 
     public Transform feet;
     public LayerMask groundLayer;
@@ -21,8 +23,15 @@ public class CapybaraScript : MonoBehaviour {
     // Update is called once per frame
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Space) && isGrounded()) {
+        if (Input.GetKey(KeyCode.Space) && IsGrounded()) {
             rb.AddForce(Vector2.up * jumpHeight, ForceMode2D.Impulse);
+        }
+        
+        if (Input.GetKey(KeyCode.LeftShift)) {
+            sprintActivated = true;
+        }
+        else {
+            sprintActivated = false;
         }
     }
 
@@ -34,7 +43,14 @@ public class CapybaraScript : MonoBehaviour {
         }
 
         float xInput = Input.GetAxis("Horizontal");
-        float xDist = xInput * moveSpeed * Time.deltaTime;
+        float xDist;
+        if (sprintActivated) {
+            xDist = xInput * moveSpeed * Time.deltaTime * sprintMovementMult;
+            // Debug.Log("Sprint Boost ON!");
+        } else {
+            xDist = xInput * moveSpeed * Time.deltaTime;
+            // Debug.Log("Sprint Boost OFF!");
+        }
 
         if (Math.Abs(transform.position.x + xDist) > 9.95) {
             xDist = 0;
@@ -48,7 +64,7 @@ public class CapybaraScript : MonoBehaviour {
         transform.position += new Vector3(xDist, 0f, 0f);
     }
 
-    private bool isGrounded() {
+    private bool IsGrounded() {
         Collider2D groundCheck = Physics2D.OverlapCircle(feet.position, 0.1f, groundLayer);
         return groundCheck is not null;
     }
